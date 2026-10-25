@@ -345,7 +345,9 @@ export const configureSplitTunneling = (
 	input.onchange = checkValidity;
 	input.onkeyup = (e) => {
 		if (e.key === 'Enter' || e.keyCode === 13) {
-			addWebsite();
+			if (input.checkValidity()) {
+				addWebsite();
+			}
 		}
 	};
 

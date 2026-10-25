@@ -903,7 +903,12 @@ export const start = async (area: HTMLElement) => {
 
 		disconnectButton.innerHTML = c('Action').t`Disconnect`;
 		disconnectButton.classList.add('danger-hover');
+		// Connected but unable to renew credentials (e.g. after sleep): traffic is blocked, don't claim "Protected"
+		const networkIssue =
+			state.connected &&
+			(connectionState?.error as ApiError | undefined)?.Code === -1;
 		toggleClass(serverStatusSlot, state.connected, 'success', 'danger');
+		serverStatusSlot.classList.toggle('warning', networkIssue);
 
 		const baseCountries = ['US', 'NL', 'JP'];
 		const freeCountriesList = [
@@ -917,9 +922,14 @@ export const start = async (area: HTMLElement) => {
 			? `
 				<div class="status-title">
 					<svg role="img" focusable="false" aria-hidden="true" class="protection-icon medium-icon" viewBox="0 0 24 24">
-						<use xlink:href="img/icons.svg#protected"></use>
+						<use xlink:href="img/icons.svg#${networkIssue ? 'warning' : 'protected'}"></use>
 					</svg>
-					<div id="protected-label" class="protection-status">${c('Label').t`Protected`}</div>
+					<div id="protected-label" class="protection-status">${
+						networkIssue
+							? /* translator: shown instead of "Protected" when connected but the network/API can't be reached, e.g. after the computer wakes up */
+								c('Label').t`Connection issue`
+							: c('Label').t`Protected`
+					}</div>
 				</div>
 
 				<div class="current-server-description">
@@ -1499,6 +1509,7 @@ export const start = async (area: HTMLElement) => {
 				case 'connected':
 					state.connected = true;
 					connectionState.server = data.server;
+					connectionState.error = data.error;
 					refreshConnectionStatus(data.server);
 					setError(data.error);
 					break;

@@ -29,8 +29,13 @@ export const initDevCommands = () => {
 
 					return `Slept ${minutes} min, API requests now hang until timeout. Run protonVpnDev.wake() to restore network.`;
 				},
-				/** Restore normal API requests (time offset is kept, as time really passed). */
+				/**
+				 * Restore normal API requests and the real clock: after a real sleep, local and server
+				 * clocks agree, and credentials carry a server-side absolute expiration.
+				 */
 				wake() {
+					timeOffset = 0;
+					Date.now = realNow;
 					setSimulateHangingApi(false);
 
 					return 'API requests back to normal.';

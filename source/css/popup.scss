@@ -814,6 +814,16 @@ input[type="text"]:invalid {
 		box-shadow: 0 0 $shadow-width $shadow-height rgb(166, 89, 106, 0.5);
 	}
 
+	&.warning .protection-icon,
+	&.warning .protection-status {
+		color: rgb(230, 145, 50);
+		fill: rgb(230, 145, 50);
+	}
+
+	&.warning::after {
+		box-shadow: 0 0 $shadow-width $shadow-height rgb(230, 145, 50, 0.5);
+	}
+
 	.incentive {
 		font-weight: bold;
 		color: var(--dark-gray);

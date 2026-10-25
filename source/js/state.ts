@@ -180,15 +180,35 @@ export function getAuthCredentials(
  * fall back to direct traffic. Traffic stays blocked until the user explicitly disconnects or logs out.
  * API and local network stay reachable (bypass list) so the extension can still reconnect.
  */
-const killSwitch = storage.item<{value: boolean}>('killSwitch', Storage.SESSION);
+const killSwitch = storage.item<{value: boolean; server?: ProxyServer}>(
+	'killSwitch',
+	Storage.SESSION,
+);
 let protectionWanted = false;
 let killSwitchRestored = false;
+/** Last server the user was protected by, to offer reconnection while blocked. */
+let lastProtectedServer: ProxyServer | undefined;
 
-const setProtectionWanted = (wanted: boolean) => {
+const setProtectionWanted = (wanted: boolean, server?: ProxyServer) => {
 	killSwitchRestored = true; // An explicit change wins over the stored value
 	protectionWanted = wanted;
-	triggerPromise(killSwitch.setValue(wanted));
+	lastProtectedServer = wanted ? server || lastProtectedServer : undefined;
+	triggerPromise(killSwitch.setValue(wanted, {server: lastProtectedServer}));
 };
+
+export const reconnectLastServer = async () => {
+	await restoreKillSwitch();
+	const server = lastProtectedServer || (await killSwitch.get())?.server;
+
+	if (server) {
+		await connect({server});
+	}
+};
+
+/** Requests fail because of the kill switch, not because of a passing proxy hiccup. */
+export const isKillSwitchBlocking = () =>
+	protectionWanted &&
+	(currentState?.name !== 'on' || !!currentState.data.error);
 
 /** Background may restart while blocked (e.g. Chrome service worker during sleep). */
 export const restoreKillSwitch = async () => {
@@ -276,7 +296,9 @@ const onState = asConnectionStateSwitch({
 		}
 
 		this.proxyEnabled = true;
-		setProtectionWanted(true);
+		setProtectionWanted(true, server);
+		// Every (re)connection path goes through here, keep the toolbar icon in sync
+		setButton('on', `${c('Label').t`Protected`} - ${server.name || ''}`);
 		triggerPromise(this.checkLogicalIsUp(credentials));
 
 		setReviewInfoStateLastSeenConnected();
@@ -646,6 +668,12 @@ const offState: ConnectionStateSwitch = {
 		}
 
 		await restoreKillSwitch();
+
+		// Reconnected in the meantime: don't put back the error icon or the blocking proxy
+		if (currentState !== this) {
+			return;
+		}
+
 		currentState.data.blocked = protectionWanted;
 		notifyStateChange('disconnected', {error, blocked: protectionWanted});
 

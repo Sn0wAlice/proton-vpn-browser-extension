@@ -11,6 +11,7 @@ import {initIdleWatcher} from './vpn/initIdleWatcher';
 import {initAuthInterceptor} from './vpn/initAuthInterceptor';
 import {initSentry} from './tools/sentry';
 import {setProxyToWaiterHost} from './tools/proxy';
+import {initKillSwitchPage} from './vpn/initKillSwitchPage';
 import {initDevCommands} from './tools/devCommands';
 
 triggerPromise(setProxyToWaiterHost());
@@ -24,4 +25,5 @@ initPostInstallationHook();
 initFocusWatcher();
 initProxySettingsWatcher();
 initIdleWatcher();
+initKillSwitchPage();
 initDevCommands();

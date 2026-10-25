@@ -61,10 +61,8 @@ document
 		}
 	});
 
-document
-	.querySelector('.disconnect-button')
-	?.addEventListener('click', () => {
-		disconnecting = true;
-		setBusy(true);
-		triggerPromise(sendMessageToBackground(StateChange.DISCONNECT));
-	});
+document.querySelector('.disconnect-button')?.addEventListener('click', () => {
+	disconnecting = true;
+	setBusy(true);
+	triggerPromise(sendMessageToBackground(StateChange.DISCONNECT));
+});

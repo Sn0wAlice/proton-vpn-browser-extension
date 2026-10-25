@@ -218,7 +218,7 @@ export const configureSplitTunneling = (
 					!modeDropdownMenu ||
 					!modeOptions
 				) {
-					console.warn('Dropdown elements missing in split tunneling config');
+					warn('Dropdown elements missing in split tunneling config');
 					return;
 				}
 
@@ -251,7 +251,7 @@ export const configureSplitTunneling = (
 							'data-value',
 						) as keyof typeof SplitTunnelingMode;
 						if (!selectedValue || !(selectedValue in SplitTunnelingMode)) {
-							console.warn('Invalid mode selected');
+							warn('Invalid mode selected');
 							return;
 						}
 

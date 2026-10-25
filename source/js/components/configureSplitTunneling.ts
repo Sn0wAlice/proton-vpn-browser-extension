@@ -309,11 +309,11 @@ export const configureSplitTunneling = (
 			const domain = tab?.url && new URL(tab.url).hostname;
 
 			if (domain) {
-				const tld = domain.replace(/^.*\.([^.]+\.[a-z]+)$/, '$1');
+				const seed = domain.replace(/^www\./, '');
 
-				if (!domainManager.hasDomainInCurrentMode(tld)) {
-					input.value = tld;
-				} else if (input.value === tld) {
+				if (!domainManager.hasDomainInCurrentMode(seed)) {
+					input.value = seed;
+				} else if (input.value === seed) {
 					input.value = '';
 				}
 

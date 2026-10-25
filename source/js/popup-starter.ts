@@ -137,7 +137,45 @@ const state = {
 
 type Theme = 'dark' | 'light' | 'auto';
 
+/**
+ * When the background is stuck (e.g. after the computer wakes up), loading can
+ * take a while: explain it, then offer a way out so the user can get internet back.
+ */
+const showLoadingFallback = (area: HTMLElement) => {
+	const spinner = area.querySelector<HTMLElement>('#spinner');
+
+	if (!spinner) {
+		return;
+	}
+
+	setTimeout(() => spinner.classList.add('slow'), milliSeconds.fromSeconds(3));
+	setTimeout(
+		() => spinner.classList.add('stuck'),
+		milliSeconds.fromSeconds(10),
+	);
+
+	spinner
+		.querySelector('.spinner-disconnect-button')
+		?.addEventListener('click', () => {
+			// Chrome applies proxy settings on its own, clear them directly in case the background
+			// does not answer. Firefox routes each request through proxy.onRequest in the background.
+			if (!(chrome.proxy as any)?.onRequest) {
+				chrome.proxy?.settings.clear({});
+			}
+
+			timeoutAfter(
+				sendMessageToBackground(StateChange.DISCONNECT),
+				milliSeconds.fromSeconds(2),
+			)
+				.catch(() => {
+					// Background unreachable, nothing more we can do from here
+				})
+				.finally(() => window.close());
+		});
+};
+
 export const start = async (area: HTMLElement) => {
+	showLoadingFallback(area);
 	let pmUserCache: {user: PmUser | undefined} | null = null;
 	const session = await readSession();
 

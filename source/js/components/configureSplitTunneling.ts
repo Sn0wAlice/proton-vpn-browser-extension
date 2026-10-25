@@ -240,7 +240,12 @@ export const configureSplitTunneling = (
 				// Handle mode selection
 				modeOptions.forEach((option) => {
 					const value = option.getAttribute('data-value');
-					option.classList.toggle('selected', value === currentModeText);
+					option.classList.toggle(
+						'selected',
+						value !== null &&
+							SplitTunnelingMode[value as keyof typeof SplitTunnelingMode] ===
+								currentMode,
+					);
 
 					if (!addHandler) {
 						return;
